@@ -107,6 +107,7 @@ where
             if element.is_body_element_of_html_element_root() {
                 flags.insert(FragmentFlags::IS_BODY_ELEMENT_OF_HTML_ELEMENT_ROOT);
             }
+
             match element.get_local_name() {
                 &local_name!("br") => {
                     flags.insert(FragmentFlags::IS_BR_ELEMENT);
@@ -124,6 +125,11 @@ where
                 ))
             ) {
                 flags.insert(FragmentFlags::IS_TEXT_CONTROL);
+            } else if matches!(
+                element.type_id(),
+                Some(LayoutNodeType::Element(LayoutElementType::HTMLHtmlElement))
+            ) {
+                flags.insert(FragmentFlags::IS_ROOT_HTML_ELEMENT);
             }
         };
 
@@ -329,8 +335,8 @@ fn traverse_pseudo_element_contents<'dom, Node>(
                 };
                 // `display` is not inherited, so we get the initial value
                 debug_assert!(
-                    Display::from(item_style.get_box().display) ==
-                        Display::GeneratingBox(display_inline)
+                    Display::from(item_style.get_box().display)
+                        == Display::GeneratingBox(display_inline)
                 );
                 let info = info.new_replacing_style(item_style.clone());
                 handler.handle_element(
@@ -508,10 +514,10 @@ where
                             vec.push(PseudoElementContentItem::Text(quote));
                         }
                     },
-                    ContentItem::Counter(_, _) |
-                    ContentItem::Counters(_, _, _) |
-                    ContentItem::NoOpenQuote |
-                    ContentItem::NoCloseQuote => {
+                    ContentItem::Counter(_, _)
+                    | ContentItem::Counters(_, _, _)
+                    | ContentItem::NoOpenQuote
+                    | ContentItem::NoCloseQuote => {
                         // TODO: Add support for counters and quotes.
                     },
                 }
