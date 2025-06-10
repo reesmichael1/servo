@@ -1438,8 +1438,10 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
     }
 
     fn value_for_layout(self) -> String {
-        let image_element = self.unsafe_get();
-        image_element.Alt().into()
+        self.upcast::<Element>()
+            .get_attr_val_for_layout(&ns!(), &local_name!("alt"))
+            .unwrap_or("")
+            .into()
     }
 
     fn image_data(self) -> (Option<Image>, Option<ImageMetadata>) {
@@ -1470,14 +1472,19 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
     // https://html.spec.whatwg.org/multipage/#the-img-element
     fn get_representation(self) -> ImageRepresentation {
         // What an img element represents depends on the src attribute and the alt attribute.
-        let image_element = self.unsafe_get();
-        let src = image_element.Src();
-        let alt = image_element.Alt();
         let request = self.current_request();
-        let element = image_element.upcast::<Element>();
+        let element = self.upcast::<Element>();
+
+        let alt_opt = self
+            .upcast::<Element>()
+            .get_attr_val_for_layout(&ns!(), &local_name!("alt"));
+        let alt = alt_opt.unwrap_or("");
+
+        let src_opt = element.get_attr_val_for_layout(&ns!(), &local_name!("src"));
+        let src = src_opt.unwrap_or("");
 
         // The alt attribute being set to the empty string is distinct from alt == "".
-        let alt_set_to_empty = alt.is_empty() && element.has_attribute(&local_name!("alt"));
+        let alt_set_to_empty = alt.is_empty() && alt_opt.is_some();
 
         // If the src attribute is set and the alt attribute is set to the empty string,
         // the image is either decorative or supplemental to the rest of the content,
@@ -1511,7 +1518,7 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
         }
         // If the src attribute is set and the alt attribute is not,
         // the image might be a key part of the content, and there is no textual equivalent of the image available.
-        else if element.has_attribute(&local_name!("src")) && alt == "" {
+        else if src_opt.is_some() && alt == "" {
             // If the image is available and the user agent is configured to display that image,
             // then the element represents the element's image data.
             if request.is_available() {
