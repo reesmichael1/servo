@@ -28,9 +28,7 @@ use webrender_api::ImageKey;
 use crate::cell::ArcRefCell;
 use crate::context::{LayoutContext, LayoutImageCacheResult};
 use crate::dom::NodeExt;
-use crate::fragment_tree::{
-    BaseFragmentInfo, Fragment, IFrameFragment, ImageFragment, TextFragment,
-};
+use crate::fragment_tree::{BaseFragmentInfo, Fragment, IFrameFragment, ImageFragment};
 use crate::geom::{
     LogicalSides1D, LogicalVec2, PhysicalPoint, PhysicalRect, PhysicalSize, Size, Sizes,
 };
