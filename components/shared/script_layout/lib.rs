@@ -136,6 +136,13 @@ pub struct TrustedNodeAddress(pub *const c_void);
 #[allow(unsafe_code)]
 unsafe impl Send for TrustedNodeAddress {}
 
+#[derive(Debug)]
+pub enum ImageRepresentation {
+    Image,
+    Nothing,
+    AltText(String),
+}
+
 /// Whether the pending image needs to be fetched or is waiting on an existing fetch.
 #[derive(Debug)]
 pub enum PendingImageState {

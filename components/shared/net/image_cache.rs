@@ -163,6 +163,7 @@ pub enum UsePlaceholder {
 // ImageCache public API.
 // ======================================================================
 
+#[derive(Debug)]
 pub enum ImageCacheResult {
     Available(ImageOrMetadataAvailable),
     LoadError,

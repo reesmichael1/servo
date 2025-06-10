@@ -10,12 +10,14 @@ use base::id::{BrowsingContextId, PipelineId};
 use html5ever::{local_name, ns};
 use malloc_size_of_derive::MallocSizeOf;
 use net_traits::image_cache::Image;
+//use script::dom::htmlimageelement::HTMLImageElement;
 use script::layout_dom::ServoLayoutNode;
 use script_layout_interface::wrapper_traits::{
     LayoutDataTrait, LayoutNode, ThreadSafeLayoutElement, ThreadSafeLayoutNode,
 };
 use script_layout_interface::{
-    GenericLayoutDataTrait, LayoutElementType, LayoutNodeType as ScriptLayoutNodeType,
+    GenericLayoutDataTrait, ImageRepresentation, LayoutElementType,
+    LayoutNodeType as ScriptLayoutNodeType,
 };
 use servo_arc::Arc as ServoArc;
 use style::context::SharedStyleContext;
@@ -196,7 +198,7 @@ impl Drop for BoxSlot<'_> {
 pub(crate) trait NodeExt<'dom> {
     /// Returns the image if it’s loaded, and its size in image pixels
     /// adjusted for `image_density`.
-    fn as_image(&self) -> Option<(Option<Image>, PhysicalSize<f64>)>;
+    fn as_image(&self) -> Option<(Option<Image>, ImageRepresentation, PhysicalSize<f64>)>;
     fn as_canvas(&self) -> Option<(CanvasInfo, PhysicalSize<f64>)>;
     fn as_iframe(&self) -> Option<(PipelineId, BrowsingContextId)>;
     fn as_video(&self) -> Option<(Option<webrender_api::ImageKey>, Option<PhysicalSize<f64>>)>;
@@ -219,7 +221,7 @@ pub(crate) trait NodeExt<'dom> {
 }
 
 impl<'dom> NodeExt<'dom> for ServoLayoutNode<'dom> {
-    fn as_image(&self) -> Option<(Option<Image>, PhysicalSize<f64>)> {
+    fn as_image(&self) -> Option<(Option<Image>, ImageRepresentation, PhysicalSize<f64>)> {
         let node = self.to_threadsafe();
         let (resource, metadata) = node.image_data()?;
         let (width, height) = resource
@@ -230,12 +232,14 @@ impl<'dom> NodeExt<'dom> for ServoLayoutNode<'dom> {
             })
             .or_else(|| metadata.map(|metadata| (metadata.width, metadata.height)))
             .unwrap_or((0, 0));
+        dbg!(&metadata);
         let (mut width, mut height) = (width as f64, height as f64);
         if let Some(density) = node.image_density().filter(|density| *density != 1.) {
             width /= density;
             height /= density;
         }
-        Some((resource, PhysicalSize::new(width, height)))
+        let representation = node.image_representation()?;
+        Some((resource, representation, PhysicalSize::new(width, height)))
     }
 
     fn as_video(&self) -> Option<(Option<webrender_api::ImageKey>, Option<PhysicalSize<f64>>)> {
@@ -274,8 +278,8 @@ impl<'dom> NodeExt<'dom> for ServoLayoutNode<'dom> {
     }
 
     fn as_typeless_object_with_data_attribute(&self) -> Option<String> {
-        if LayoutNode::type_id(self) !=
-            ScriptLayoutNodeType::Element(LayoutElementType::HTMLObjectElement)
+        if LayoutNode::type_id(self)
+            != ScriptLayoutNodeType::Element(LayoutElementType::HTMLObjectElement)
         {
             return None;
         }

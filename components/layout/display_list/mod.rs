@@ -614,7 +614,10 @@ impl Fragment {
                 );
             },
             Fragment::Image(image) => {
+                println!("in Fragment::Image");
+                //dbg!("Found the image fragment");
                 let image = image.borrow();
+                //dbg!(&image);
                 match image.style.get_inherited_box().visibility {
                     Visibility::Visible => {
                         builder.mark_is_contentful();
@@ -635,6 +638,7 @@ impl Fragment {
                         let common = builder.common_properties(clip, &image.style);
 
                         if let Some(image_key) = image.image_key {
+                            println!("pushing the image");
                             builder.wr().push_image(
                                 &common,
                                 rect,
@@ -643,6 +647,8 @@ impl Fragment {
                                 image_key,
                                 wr::ColorF::WHITE,
                             );
+                        } else {
+                            println!("made our way into the else");
                         }
                     },
                     Visibility::Hidden => (),
@@ -1322,6 +1328,7 @@ impl<'a> BuilderForBoxFragment<'a> {
                                 wr::ColorF::WHITE,
                             )
                         } else {
+                            println!("pushing the image as a background one");
                             builder.wr().push_image(
                                 &layer.common,
                                 layer.bounds,

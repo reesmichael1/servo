@@ -30,6 +30,7 @@ use net_traits::{
 };
 use num_traits::ToPrimitive;
 use pixels::{CorsStatus, ImageMetadata};
+use script_layout_interface::ImageRepresentation;
 use servo_url::ServoUrl;
 use servo_url::origin::MutableOrigin;
 use style::attr::{AttrValue, LengthOrPercentageOrAuto, parse_integer, parse_length};
@@ -153,6 +154,19 @@ struct ImageRequest {
     final_url: Option<ServoUrl>,
     current_pixel_density: Option<f64>,
 }
+
+impl ImageRequest {
+    fn is_available(&self) -> bool {
+        // https://html.spec.whatwg.org/multipage/images.html#img-available
+        // When an image request's state is either partially available or completely available,
+        // the image request is said to be available.
+        match self.state {
+            State::PartiallyAvailable | State::CompletelyAvailable => true,
+            State::Unavailable | State::Broken => false,
+        }
+    }
+}
+
 #[dom_struct]
 pub(crate) struct HTMLImageElement {
     htmlelement: HTMLElement,
@@ -261,6 +275,8 @@ impl FetchResponseListener for ImageContext {
                 )))
             }
         };
+
+        dbg!(&self.status);
     }
 
     fn process_response_chunk(&mut self, request_id: RequestId, payload: Vec<u8>) {
@@ -333,6 +349,7 @@ impl HTMLImageElement {
             UsePlaceholder::Yes,
         );
 
+        dbg!(&cache_result);
         match cache_result {
             ImageCacheResult::Available(ImageOrMetadataAvailable::ImageAvailable {
                 image,
@@ -1407,6 +1424,8 @@ pub(crate) trait LayoutHTMLImageElementHelpers {
     fn image_data(self) -> (Option<Image>, Option<ImageMetadata>);
     fn get_width(self) -> LengthOrPercentageOrAuto;
     fn get_height(self) -> LengthOrPercentageOrAuto;
+    fn get_representation(self) -> ImageRepresentation;
+    fn value_for_layout(self) -> String;
 }
 
 impl<'dom> LayoutDom<'dom, HTMLImageElement> {
@@ -1421,8 +1440,16 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
         self.current_request().parsed_url.clone()
     }
 
+    fn value_for_layout(self) -> String {
+        let image_element = self.unsafe_get();
+        image_element.Alt().into()
+    }
+
     fn image_data(self) -> (Option<Image>, Option<ImageMetadata>) {
         let current_request = self.current_request();
+        //let image_element = self.unsafe_get();
+        //let alt = image_element.Alt();
+        //dbg!(&alt);
         (current_request.image.clone(), current_request.metadata)
     }
 
@@ -1444,6 +1471,79 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
             .map(AttrValue::as_dimension)
             .cloned()
             .unwrap_or(LengthOrPercentageOrAuto::Auto)
+    }
+
+    // https://html.spec.whatwg.org/multipage/embedded-content.html#the-img-element
+    fn get_representation(self) -> ImageRepresentation {
+        // What an img element represents depends on the src attribute and the alt attribute.
+        let image_element = self.unsafe_get();
+        let src = image_element.Src();
+        let alt = image_element.Alt();
+        let request = self.current_request();
+        let element = image_element.upcast::<Element>();
+
+        // The alt attribute being set to the empty string is distinct from alt == "".
+        let alt_set_to_empty = alt.is_empty() && element.has_attribute(&local_name!("alt"));
+
+        // If the src attribute is set and the alt attribute is set to the empty string,
+        // the image is either decorative or supplemental to the rest of the content,
+        // redundant with some other information in the document.
+        if alt_set_to_empty && src != "" {
+            // If the image is available and the user agent is configured to display that image,
+            // then the element represents the element's image data.
+            if request.is_available() {
+                ImageRepresentation::Image
+            } else {
+                // Otherwise, the element represents nothing, and may be omitted completely from the rendering.
+                // User agents may provide the user with a notification that an image is present
+                // but has been omitted from the rendering.
+                ImageRepresentation::AltText(alt.into())
+            }
+        }
+        // If the src attribute is set and the alt attribute is set to a value that isn't empty,
+        // the image is a key part of the content; the alt attribute gives a textual equivalent or replacement for the image.
+        else if src != "" && alt != "" {
+            // If the image is available and the user agent is configured to display that image,
+            // then the element represents the element's image data.
+            if request.is_available() {
+                ImageRepresentation::Image
+            } else {
+                // Otherwise, the element represents the text given by the alt attribute.
+                // User agents may provide the user with a notification that an image is present
+                // but has been omitted from the rendering.
+                ImageRepresentation::AltText(alt.into())
+            }
+        }
+        // If the src attribute is set and the alt attribute is not,
+        // the image might be a key part of the content, and there is no textual equivalent of the image available.
+        else if element.has_attribute(&local_name!("src")) && alt == "" {
+            // If the image is available and the user agent is configured to display that image,
+            // then the element represents the element's image data.
+            if request.is_available() {
+                ImageRepresentation::Image
+            } else if src == "" {
+                // If the image has a src attribute whose value is the empty string,
+                // then the element represents nothing.
+                ImageRepresentation::Nothing
+            } else {
+                // Otherwise, the user agent should display some sort of indicator that there is an image
+                // that is not being rendered, and may, if requested by the user, or if so configured,
+                // or when required to provide contextual information in response to navigation,
+                // provide caption information for the image, derived as follows:
+
+                // TODO this is not correct! Although, why are we getting here when the image is
+                // still loading?
+                ImageRepresentation::Nothing
+            }
+        }
+        // If the src attribute is not set and either the alt attribute is set to the empty string
+        // or the alt attribute is not set at all, the element represents nothing.
+        else if src == "" && alt == "" {
+            ImageRepresentation::Nothing
+        } else {
+            // The element represents the text given by the alt attribute.
+            ImageRepresentation::AltText(alt.into())
+        }
     }
 }
 

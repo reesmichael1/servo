@@ -26,7 +26,7 @@ use style::stylist::RuleInclusion;
 
 use crate::{
     FragmentType, GenericLayoutData, GenericLayoutDataTrait, HTMLCanvasData, HTMLMediaData,
-    LayoutNodeType, SVGSVGData, StyleData,
+    ImageRepresentation, LayoutNodeType, SVGSVGData, StyleData,
 };
 
 pub trait LayoutDataTrait: GenericLayoutDataTrait + Default + Send + Sync + 'static {}
@@ -223,6 +223,9 @@ pub trait ThreadSafeLayoutNode<'dom>: Clone + Copy + Debug + NodeInfo + PartialE
 
     /// If this is an image element, returns its image data. Otherwise, returns `None`.
     fn image_data(&self) -> Option<(Option<Image>, Option<ImageMetadata>)>;
+
+    /// If this is an image element, returns the type of data this element represents.
+    fn image_representation(&self) -> Option<ImageRepresentation>;
 
     fn canvas_data(&self) -> Option<HTMLCanvasData>;
 

@@ -302,6 +302,7 @@ impl CrossProcessCompositorApi {
         descriptor: ImageDescriptor,
         data: SerializableImageData,
     ) {
+        //println!("adding image");
         if let Err(e) = self.0.send(CompositorMsg::AddImage(key, descriptor, data)) {
             warn!("Error sending image update: {}", e);
         }

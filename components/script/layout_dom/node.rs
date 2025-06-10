@@ -15,8 +15,8 @@ use pixels::ImageMetadata;
 use range::Range;
 use script_layout_interface::wrapper_traits::{LayoutDataTrait, LayoutNode, ThreadSafeLayoutNode};
 use script_layout_interface::{
-    GenericLayoutData, HTMLCanvasData, HTMLMediaData, LayoutNodeType, SVGSVGData, StyleData,
-    TrustedNodeAddress,
+    GenericLayoutData, HTMLCanvasData, HTMLMediaData, ImageRepresentation, LayoutNodeType,
+    SVGSVGData, StyleData, TrustedNodeAddress,
 };
 use servo_arc::Arc;
 use servo_url::ServoUrl;
@@ -379,6 +379,11 @@ impl<'dom> ThreadSafeLayoutNode<'dom> for ServoThreadSafeLayoutNode<'dom> {
         this.image_data()
     }
 
+    fn image_representation(&self) -> Option<ImageRepresentation> {
+        let this = unsafe { self.get_jsmanaged() };
+        this.image_representation()
+    }
+
     fn canvas_data(&self) -> Option<HTMLCanvasData> {
         let this = unsafe { self.get_jsmanaged() };
         this.canvas_data()
@@ -470,8 +475,8 @@ impl<'dom> Iterator for ServoThreadSafeLayoutNodeChildrenIterator<'dom> {
                 loop {
                     let next_node = if let Some(ref node) = current_node {
                         if let Some(element) = node.as_element() {
-                            if element.has_local_name(&local_name!("summary")) &&
-                                element.has_namespace(&ns!(html))
+                            if element.has_local_name(&local_name!("summary"))
+                                && element.has_namespace(&ns!(html))
                             {
                                 self.current_node = None;
                                 return Some(*node);
@@ -489,11 +494,12 @@ impl<'dom> Iterator for ServoThreadSafeLayoutNodeChildrenIterator<'dom> {
             Some(PseudoElement::DetailsContent) => {
                 let node = self.current_node;
                 let node = node.and_then(|node| {
-                    if node.is_element() &&
-                        node.as_element()
+                    if node.is_element()
+                        && node
+                            .as_element()
                             .unwrap()
-                            .has_local_name(&local_name!("summary")) &&
-                        node.as_element().unwrap().has_namespace(&ns!(html))
+                            .has_local_name(&local_name!("summary"))
+                        && node.as_element().unwrap().has_namespace(&ns!(html))
                     {
                         unsafe { node.dangerous_next_sibling() }
                     } else {
