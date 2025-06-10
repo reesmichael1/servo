@@ -1857,9 +1857,8 @@ impl<'dom> LayoutNodeHelpers<'dom> for LayoutDom<'dom, Node> {
         if let Some(image) = self.downcast::<HTMLImageElement>() {
             match image.get_representation() {
                 ImageRepresentation::AltText(_) => return image.value_for_layout().into(),
-                _ => panic!("called on not-alt text"),
+                _ => panic!("tried to treat image without text representation as text"),
             }
-            //return image.value_for_layout().into();
         }
 
         panic!("not text!")

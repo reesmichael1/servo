@@ -250,7 +250,6 @@ fn traverse_element<'dom>(
 
     let replaced = ReplacedContents::for_element(element, context);
     let style = element.style(context.shared_context());
-
     match Display::from(style.get_box().display) {
         Display::None => element.unset_all_boxes(),
         Display::Contents => {
@@ -286,7 +285,6 @@ fn traverse_element<'dom>(
             let display = display.used_value_for_contents(&contents);
             let box_slot = element.element_box_slot();
             let info = NodeAndStyleInfo::new(element, style);
-
             handler.handle_element(&info, display, contents, box_slot);
         },
     }

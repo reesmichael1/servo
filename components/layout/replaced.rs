@@ -133,7 +133,7 @@ impl ReplacedContents {
 
         let (kind, natural_size_in_dots) = {
             if let Some((image, representation, natural_size_in_dots)) = element.as_image() {
-                // https://html.spec.whatwg.org/multipage/rendering.html#images-3
+                // https://html.spec.whatwg.org/multipage/#images-3
                 match representation {
                     // Treat the element as a non-replaced phrasing element whose content is the text
                     ImageRepresentation::AltText(_) => return None,

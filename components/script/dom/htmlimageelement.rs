@@ -157,7 +157,7 @@ struct ImageRequest {
 
 impl ImageRequest {
     fn is_available(&self) -> bool {
-        // https://html.spec.whatwg.org/multipage/images.html#img-available
+        // https://html.spec.whatwg.org/multipage/#img-available
         // When an image request's state is either partially available or completely available,
         // the image request is said to be available.
         match self.state {
@@ -1467,7 +1467,7 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
             .unwrap_or(LengthOrPercentageOrAuto::Auto)
     }
 
-    // https://html.spec.whatwg.org/multipage/embedded-content.html#the-img-element
+    // https://html.spec.whatwg.org/multipage/#the-img-element
     fn get_representation(self) -> ImageRepresentation {
         // What an img element represents depends on the src attribute and the alt attribute.
         let image_element = self.unsafe_get();
@@ -1495,7 +1495,8 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
             }
         }
         // If the src attribute is set and the alt attribute is set to a value that isn't empty,
-        // the image is a key part of the content; the alt attribute gives a textual equivalent or replacement for the image.
+        // the image is a key part of the content; the alt attribute gives a textual equivalent
+        // or replacement for the image.
         else if src != "" && alt != "" {
             // If the image is available and the user agent is configured to display that image,
             // then the element represents the element's image data.
