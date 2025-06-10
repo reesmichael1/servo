@@ -40,7 +40,7 @@ use crate::geom::{
 use crate::table::TableLayoutStyle;
 use crate::{ContainingBlock, IndefiniteContainingBlock};
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub(crate) enum Display {
     None,
     Contents,
@@ -211,14 +211,14 @@ impl AspectRatio {
         match ratio_dependent_axis {
             // Calculate the inline size from the block size
             AxisDirection::Inline => {
-                (ratio_determining_size + self.box_sizing_adjustment.block).scale_by(self.i_over_b)
-                    - self.box_sizing_adjustment.inline
+                (ratio_determining_size + self.box_sizing_adjustment.block).scale_by(self.i_over_b) -
+                    self.box_sizing_adjustment.inline
             },
             // Calculate the block size from the inline size
             AxisDirection::Block => {
                 (ratio_determining_size + self.box_sizing_adjustment.inline)
-                    .scale_by(1.0 / self.i_over_b)
-                    - self.box_sizing_adjustment.block
+                    .scale_by(1.0 / self.i_over_b) -
+                    self.box_sizing_adjustment.block
             },
         }
     }
@@ -520,8 +520,8 @@ impl ComputedValuesExt for ComputedValues {
     }
 
     fn is_inline_box(&self, fragment_flags: FragmentFlags) -> bool {
-        self.get_box().display.is_inline_flow()
-            && !fragment_flags
+        self.get_box().display.is_inline_flow() &&
+            !fragment_flags
                 .intersects(FragmentFlags::IS_REPLACED | FragmentFlags::IS_TEXT_CONTROL)
     }
 
@@ -541,11 +541,11 @@ impl ComputedValuesExt for ComputedValues {
 
     /// Returns true if this style has a transform or perspective property set.
     fn has_transform_or_perspective_style(&self) -> bool {
-        !self.get_box().transform.0.is_empty()
-            || self.get_box().scale != GenericScale::None
-            || self.get_box().rotate != GenericRotate::None
-            || self.get_box().translate != GenericTranslate::None
-            || self.get_box().perspective != Perspective::None
+        !self.get_box().transform.0.is_empty() ||
+            self.get_box().scale != GenericScale::None ||
+            self.get_box().rotate != GenericRotate::None ||
+            self.get_box().translate != GenericTranslate::None ||
+            self.get_box().perspective != Perspective::None
     }
 
     /// Returns true if this style has a transform or perspective property set, and
@@ -619,16 +619,16 @@ impl ComputedValuesExt for ComputedValues {
                 //   Due to the way that we implement table-wrapper boxes, it's easier to align with Firefox.
                 // - Tables ignore overflow values different than visible, clip and hidden.
                 //   This affects both axes, to ensure they have the same scrollability.
-                !matches!(self.pseudo(), Some(PseudoElement::ServoTableGrid))
-                    || matches!(overflow_x, Overflow::Auto | Overflow::Scroll)
-                    || matches!(overflow_y, Overflow::Auto | Overflow::Scroll)
+                !matches!(self.pseudo(), Some(PseudoElement::ServoTableGrid)) ||
+                    matches!(overflow_x, Overflow::Auto | Overflow::Scroll) ||
+                    matches!(overflow_y, Overflow::Auto | Overflow::Scroll)
             },
-            stylo::DisplayInside::TableColumn
-            | stylo::DisplayInside::TableColumnGroup
-            | stylo::DisplayInside::TableRow
-            | stylo::DisplayInside::TableRowGroup
-            | stylo::DisplayInside::TableHeaderGroup
-            | stylo::DisplayInside::TableFooterGroup => {
+            stylo::DisplayInside::TableColumn |
+            stylo::DisplayInside::TableColumnGroup |
+            stylo::DisplayInside::TableRow |
+            stylo::DisplayInside::TableRowGroup |
+            stylo::DisplayInside::TableHeaderGroup |
+            stylo::DisplayInside::TableFooterGroup => {
                 // <https://drafts.csswg.org/css-tables/#global-style-overrides>
                 // Table-track and table-track-group boxes ignore overflow.
                 true
@@ -698,9 +698,9 @@ impl ComputedValuesExt for ComputedValues {
 
         // From <https://www.w3.org/TR/CSS2/visuren.html#z-index>, values different than `auto`
         // make the box establish a stacking context.
-        if self.z_index_applies(fragment_flags)
-            && (!self.get_position().z_index.is_auto()
-                || will_change_bits.intersects(WillChangeBits::Z_INDEX))
+        if self.z_index_applies(fragment_flags) &&
+            (!self.get_position().z_index.is_auto() ||
+                will_change_bits.intersects(WillChangeBits::Z_INDEX))
         {
             return true;
         }
@@ -728,10 +728,10 @@ impl ComputedValuesExt for ComputedValues {
         // From <https://www.w3.org/TR/css-transforms-2/#transform-style-property>
         // > A computed value of `preserve-3d` for `transform-style` on a transformable element
         // > establishes both a stacking context and a containing block for all descendants.
-        if self.is_transformable(fragment_flags)
-            && (self.has_transform_or_perspective_style()
-                || self.get_box().transform_style == ComputedTransformStyle::Preserve3d
-                || will_change_bits
+        if self.is_transformable(fragment_flags) &&
+            (self.has_transform_or_perspective_style() ||
+                self.get_box().transform_style == ComputedTransformStyle::Preserve3d ||
+                will_change_bits
                     .intersects(WillChangeBits::TRANSFORM | WillChangeBits::PERSPECTIVE))
         {
             return true;
@@ -841,10 +841,10 @@ impl ComputedValuesExt for ComputedValues {
         // From <https://drafts.csswg.org/css-transforms-2/#transform-style-property>:
         // > A computed value of `preserve-3d` for `transform-style` on a transformable element
         // > establishes both a stacking context and a containing block for all descendants.
-        if self.is_transformable(fragment_flags)
-            && (self.has_transform_or_perspective_style()
-                || self.get_box().transform_style == ComputedTransformStyle::Preserve3d
-                || will_change_bits
+        if self.is_transformable(fragment_flags) &&
+            (self.has_transform_or_perspective_style() ||
+                self.get_box().transform_style == ComputedTransformStyle::Preserve3d ||
+                will_change_bits
                     .intersects(WillChangeBits::TRANSFORM | WillChangeBits::PERSPECTIVE))
         {
             return true;
@@ -854,9 +854,9 @@ impl ComputedValuesExt for ComputedValues {
         // > A value other than none for the filter property results in the creation of a containing
         // > block for absolute and fixed positioned descendants unless the element it applies to is
         // > a document root element in the current browsing context.
-        if !fragment_flags.contains(FragmentFlags::IS_ROOT_ELEMENT)
-            && (!self.get_effects().filter.0.is_empty()
-                || will_change_bits.intersects(WillChangeBits::FIXPOS_CB_NON_SVG))
+        if !fragment_flags.contains(FragmentFlags::IS_ROOT_ELEMENT) &&
+            (!self.get_effects().filter.0.is_empty() ||
+                will_change_bits.intersects(WillChangeBits::FIXPOS_CB_NON_SVG))
         {
             return true;
         }
@@ -928,8 +928,8 @@ impl ComputedValuesExt for ComputedValues {
     fn background_is_transparent(&self) -> bool {
         let background = self.get_background();
         let color = self.resolve_color(&background.background_color);
-        color.alpha == 0.0
-            && background
+        color.alpha == 0.0 &&
+            background
                 .background_image
                 .0
                 .iter()
@@ -1006,10 +1006,10 @@ impl ComputedValuesExt for ComputedValues {
         let inline_end_direction = self.writing_mode.inline_end_physical_side();
         let block_end_direction = self.writing_mode.block_end_physical_side();
 
-        let rightward = inline_end_direction == PhysicalSide::Right
-            || block_end_direction == PhysicalSide::Right;
-        let downward = inline_end_direction == PhysicalSide::Bottom
-            || block_end_direction == PhysicalSide::Bottom;
+        let rightward = inline_end_direction == PhysicalSide::Right ||
+            block_end_direction == PhysicalSide::Right;
+        let downward = inline_end_direction == PhysicalSide::Bottom ||
+            block_end_direction == PhysicalSide::Bottom;
 
         // TODO(stevennovaryo): We should consider the flex-container's CSS (e.g. flow-direction: column-reverse).
         OverflowDirection {
@@ -1074,10 +1074,10 @@ impl LayoutStyle<'_> {
                 _ => false,
             }
         };
-        let depends_on_block_constraints = depends_on_block_constraints(&box_size.block)
-            || depends_on_block_constraints(&min_size.block)
-            || depends_on_block_constraints(&max_size.block)
-            || style.depends_on_block_constraints_due_to_relative_positioning(writing_mode);
+        let depends_on_block_constraints = depends_on_block_constraints(&box_size.block) ||
+            depends_on_block_constraints(&min_size.block) ||
+            depends_on_block_constraints(&max_size.block) ||
+            style.depends_on_block_constraints_due_to_relative_positioning(writing_mode);
 
         let box_size = box_size.map_with(&containing_block.size, |size, basis| {
             size.resolve_percentages_for_preferred(*basis)
@@ -1243,13 +1243,13 @@ impl From<stylo::Display> for Display {
             stylo::DisplayInside::Contents => return Display::Contents,
 
             stylo::DisplayInside::Table => DisplayInside::Table,
-            stylo::DisplayInside::TableRowGroup
-            | stylo::DisplayInside::TableColumn
-            | stylo::DisplayInside::TableColumnGroup
-            | stylo::DisplayInside::TableHeaderGroup
-            | stylo::DisplayInside::TableFooterGroup
-            | stylo::DisplayInside::TableRow
-            | stylo::DisplayInside::TableCell => unreachable!("Internal DisplayInside found"),
+            stylo::DisplayInside::TableRowGroup |
+            stylo::DisplayInside::TableColumn |
+            stylo::DisplayInside::TableColumnGroup |
+            stylo::DisplayInside::TableHeaderGroup |
+            stylo::DisplayInside::TableFooterGroup |
+            stylo::DisplayInside::TableRow |
+            stylo::DisplayInside::TableCell => unreachable!("Internal DisplayInside found"),
         };
         Display::GeneratingBox(DisplayGeneratingBox::OutsideInside { outside, inside })
     }

@@ -43,7 +43,6 @@ impl FetchResponseListener for LayoutImageContext {
         request_id: RequestId,
         metadata: Result<FetchMetadata, NetworkError>,
     ) {
-        println!("got some sort of response");
         self.cache.notify_pending_response(
             self.id,
             FetchResponseMsg::ProcessResponse(request_id, metadata),
@@ -104,7 +103,6 @@ pub(crate) fn fetch_image_for_layout(
     id: PendingImageId,
     cache: Arc<dyn ImageCache>,
 ) {
-    println!("in fetch_image_for_layout");
     let document = node.owner_document();
     let context = LayoutImageContext {
         id,

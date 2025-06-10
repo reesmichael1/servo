@@ -332,38 +332,6 @@ impl<'dom> TraversalHandler<'dom> for BlockContainerBuilder<'dom, '_> {
         contents: Contents,
         box_slot: BoxSlot<'dom>,
     ) {
-        //if let Some((_image, representation, _size)) = info.node.as_image() {
-        //    match representation {
-        //        ImageRepresentation::AltText(alt) => {
-        //            self.handle_text(info, alt.into());
-        //
-        //    let atomic = self.ensure_inline_formatting_context_builder().push_atomic(
-        //        IndependentFormattingContext::construct(
-        //            context,
-        //            info,
-        //            display_inside,
-        //            contents,
-        //            propagated_data,
-        //        ),
-        //    );
-        //    box_slot.set(LayoutBox::InlineLevel(vec![atomic]));
-        //
-        //            //box_slot.set(LayoutBox::InlineLevel(vec![]));
-        //
-        //            //box_slot.set(LayoutBox::InlineLevel(
-        //            //    self.inline_formatting_context_builder
-        //            //        .as_mut()
-        //            //        .expect("Should be building an InlineFormattingContext")
-        //            //        .end_inline_box(),
-        //            //));
-        //            return;
-        //        },
-        //        ImageRepresentation::Nothing | ImageRepresentation::Image => {
-        //            // TODO: I'm pretty sure this should be unreachable?
-        //        },
-        //    }
-        //}
-
         match display {
             DisplayGeneratingBox::OutsideInside { outside, inside } => {
                 self.finish_anonymous_table_if_needed();
@@ -497,7 +465,6 @@ impl<'dom> BlockContainerBuilder<'dom, '_> {
         contents: Contents,
         box_slot: BoxSlot<'dom>,
     ) {
-        dbg!(contents.is_replaced());
         let (DisplayInside::Flow { is_list_item }, false) =
             (display_inside, contents.is_replaced())
         else {
@@ -560,21 +527,6 @@ impl<'dom> BlockContainerBuilder<'dom, '_> {
                 .expect("Should be building an InlineFormattingContext")
                 .end_inline_box(),
         ));
-
-        //let is_image = matches!(
-        //    info.node.type_id(),
-        //    LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-        //);
-
-        //dbg!(&is_image);
-
-        //handler.enter_display_contents(shared_inline_styles);
-        //if is_image {
-        //    let info = NodeAndStyleInfo::new(element, element.style(context.shared_context()));
-        //    handler.handle_text(&info, element.to_threadsafe().node_text_content());
-        //} else {
-        //    traverse_children_of(element, context, handler);
-        //}
     }
 
     fn handle_block_level_element(

@@ -1682,8 +1682,8 @@ impl<'dom> LayoutNodeHelpers<'dom> for LayoutDom<'dom, Node> {
     }
 
     fn is_text_node_for_layout(&self) -> bool {
-        self.type_id_for_layout()
-            == NodeTypeId::CharacterData(CharacterDataTypeId::Text(TextTypeId::Text))
+        self.type_id_for_layout() ==
+            NodeTypeId::CharacterData(CharacterDataTypeId::Text(TextTypeId::Text))
     }
 
     #[inline]
@@ -1820,8 +1820,8 @@ impl<'dom> LayoutNodeHelpers<'dom> for LayoutDom<'dom, Node> {
 
     fn is_text_input(&self) -> bool {
         let type_id = self.type_id_for_layout();
-        if type_id
-            == NodeTypeId::Element(ElementTypeId::HTMLElement(
+        if type_id ==
+            NodeTypeId::Element(ElementTypeId::HTMLElement(
                 HTMLElementTypeId::HTMLInputElement,
             ))
         {
@@ -1830,8 +1830,8 @@ impl<'dom> LayoutNodeHelpers<'dom> for LayoutDom<'dom, Node> {
             // FIXME: All the non-color and non-text input types currently render as text
             !matches!(input.input_type(), InputType::Color | InputType::Text)
         } else {
-            type_id
-                == NodeTypeId::Element(ElementTypeId::HTMLElement(
+            type_id ==
+                NodeTypeId::Element(ElementTypeId::HTMLElement(
                     HTMLElementTypeId::HTMLTextAreaElement,
                 ))
         }
@@ -1868,9 +1868,8 @@ impl<'dom> LayoutNodeHelpers<'dom> for LayoutDom<'dom, Node> {
     fn selection(self) -> Option<Range<usize>> {
         // This node is a text node of a text control inner editor in a <input> or <textarea> element.
         // So we should find those corresponding element, and get its selection.
-        if self.is_text_node_for_layout()
-            && self
-                .parent_node_ref()
+        if self.is_text_node_for_layout() &&
+            self.parent_node_ref()
                 .is_some_and(|parent| parent.is_text_control_inner_editor())
         {
             let shadow_root = self.containing_shadow_root_for_layout();
@@ -2300,10 +2299,10 @@ impl Node {
                     return Err(Error::HierarchyRequest);
                 }
             },
-            NodeTypeId::DocumentFragment(_)
-            | NodeTypeId::Element(_)
-            | NodeTypeId::CharacterData(CharacterDataTypeId::ProcessingInstruction)
-            | NodeTypeId::CharacterData(CharacterDataTypeId::Comment) => (),
+            NodeTypeId::DocumentFragment(_) |
+            NodeTypeId::Element(_) |
+            NodeTypeId::CharacterData(CharacterDataTypeId::ProcessingInstruction) |
+            NodeTypeId::CharacterData(CharacterDataTypeId::Comment) => (),
             NodeTypeId::Document(_) | NodeTypeId::Attr => return Err(Error::HierarchyRequest),
         }
 
@@ -3454,9 +3453,9 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
 
         // Step 12. Let nodes be node’s children if node is a DocumentFragment node; otherwise « node ».
         rooted_vec!(let mut nodes);
-        let nodes = if node.type_id()
-            == NodeTypeId::DocumentFragment(DocumentFragmentTypeId::DocumentFragment)
-            || node.type_id() == NodeTypeId::DocumentFragment(DocumentFragmentTypeId::ShadowRoot)
+        let nodes = if node.type_id() ==
+            NodeTypeId::DocumentFragment(DocumentFragmentTypeId::DocumentFragment) ||
+            node.type_id() == NodeTypeId::DocumentFragment(DocumentFragmentTypeId::ShadowRoot)
         {
             nodes.extend(node.children().map(|node| Dom::from_ref(&*node)));
             nodes.r()
@@ -3559,24 +3558,24 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
         fn is_equal_doctype(node: &Node, other: &Node) -> bool {
             let doctype = node.downcast::<DocumentType>().unwrap();
             let other_doctype = other.downcast::<DocumentType>().unwrap();
-            (*doctype.name() == *other_doctype.name())
-                && (*doctype.public_id() == *other_doctype.public_id())
-                && (*doctype.system_id() == *other_doctype.system_id())
+            (*doctype.name() == *other_doctype.name()) &&
+                (*doctype.public_id() == *other_doctype.public_id()) &&
+                (*doctype.system_id() == *other_doctype.system_id())
         }
         fn is_equal_element(node: &Node, other: &Node) -> bool {
             let element = node.downcast::<Element>().unwrap();
             let other_element = other.downcast::<Element>().unwrap();
-            (*element.namespace() == *other_element.namespace())
-                && (*element.prefix() == *other_element.prefix())
-                && (*element.local_name() == *other_element.local_name())
-                && (element.attrs().len() == other_element.attrs().len())
+            (*element.namespace() == *other_element.namespace()) &&
+                (*element.prefix() == *other_element.prefix()) &&
+                (*element.local_name() == *other_element.local_name()) &&
+                (element.attrs().len() == other_element.attrs().len())
         }
         fn is_equal_processinginstruction(node: &Node, other: &Node) -> bool {
             let pi = node.downcast::<ProcessingInstruction>().unwrap();
             let other_pi = other.downcast::<ProcessingInstruction>().unwrap();
-            (*pi.target() == *other_pi.target())
-                && (*pi.upcast::<CharacterData>().data()
-                    == *other_pi.upcast::<CharacterData>().data())
+            (*pi.target() == *other_pi.target()) &&
+                (*pi.upcast::<CharacterData>().data() ==
+                    *other_pi.upcast::<CharacterData>().data())
         }
         fn is_equal_characterdata(node: &Node, other: &Node) -> bool {
             let characterdata = node.downcast::<CharacterData>().unwrap();
@@ -3586,9 +3585,9 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
         fn is_equal_attr(node: &Node, other: &Node) -> bool {
             let attr = node.downcast::<Attr>().unwrap();
             let other_attr = other.downcast::<Attr>().unwrap();
-            (*attr.namespace() == *other_attr.namespace())
-                && (attr.local_name() == other_attr.local_name())
-                && (**attr.value() == **other_attr.value())
+            (*attr.namespace() == *other_attr.namespace()) &&
+                (attr.local_name() == other_attr.local_name()) &&
+                (**attr.value() == **other_attr.value())
         }
         fn is_equal_element_attrs(node: &Node, other: &Node) -> bool {
             let element = node.downcast::<Element>().unwrap();
@@ -3596,9 +3595,9 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
             assert!(element.attrs().len() == other_element.attrs().len());
             element.attrs().iter().all(|attr| {
                 other_element.attrs().iter().any(|other_attr| {
-                    (*attr.namespace() == *other_attr.namespace())
-                        && (attr.local_name() == other_attr.local_name())
-                        && (**attr.value() == **other_attr.value())
+                    (*attr.namespace() == *other_attr.namespace()) &&
+                        (attr.local_name() == other_attr.local_name()) &&
+                        (**attr.value() == **other_attr.value())
                 })
             })
         }
@@ -3618,8 +3617,8 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
                 {
                     return false;
                 },
-                NodeTypeId::CharacterData(CharacterDataTypeId::Text(_))
-                | NodeTypeId::CharacterData(CharacterDataTypeId::Comment)
+                NodeTypeId::CharacterData(CharacterDataTypeId::Text(_)) |
+                NodeTypeId::CharacterData(CharacterDataTypeId::Comment)
                     if !is_equal_characterdata(this, node) =>
                 {
                     return false;
@@ -3710,19 +3709,19 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
                     // or other is first; spec is clear that we
                     // want value-equality, not reference-equality
                     for attr in attrs.iter() {
-                        if (*attr.namespace() == *a1.namespace())
-                            && (attr.local_name() == a1.local_name())
-                            && (**attr.value() == **a1.value())
+                        if (*attr.namespace() == *a1.namespace()) &&
+                            (attr.local_name() == a1.local_name()) &&
+                            (**attr.value() == **a1.value())
                         {
-                            return NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC
-                                + NodeConstants::DOCUMENT_POSITION_PRECEDING;
+                            return NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC +
+                                NodeConstants::DOCUMENT_POSITION_PRECEDING;
                         }
-                        if (*attr.namespace() == *a2.namespace())
-                            && (attr.local_name() == a2.local_name())
-                            && (**attr.value() == **a2.value())
+                        if (*attr.namespace() == *a2.namespace()) &&
+                            (attr.local_name() == a2.local_name()) &&
+                            (**attr.value() == **a2.value())
                         {
-                            return NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC
-                                + NodeConstants::DOCUMENT_POSITION_FOLLOWING;
+                            return NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC +
+                                NodeConstants::DOCUMENT_POSITION_FOLLOWING;
                         }
                     }
                     // both attrs have node2 as their owner element, so
@@ -3736,15 +3735,15 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
         match (node1, node2) {
             (None, _) => {
                 // node1 is null
-                NodeConstants::DOCUMENT_POSITION_FOLLOWING
-                    + NodeConstants::DOCUMENT_POSITION_DISCONNECTED
-                    + NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC
+                NodeConstants::DOCUMENT_POSITION_FOLLOWING +
+                    NodeConstants::DOCUMENT_POSITION_DISCONNECTED +
+                    NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC
             },
             (_, None) => {
                 // node2 is null
-                NodeConstants::DOCUMENT_POSITION_PRECEDING
-                    + NodeConstants::DOCUMENT_POSITION_DISCONNECTED
-                    + NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC
+                NodeConstants::DOCUMENT_POSITION_PRECEDING +
+                    NodeConstants::DOCUMENT_POSITION_DISCONNECTED +
+                    NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC
             },
             (Some(node1), Some(node2)) => {
                 // still step 6, testing if node1 and 2 share a root
@@ -3756,8 +3755,8 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
                     .collect::<SmallVec<[_; 20]>>();
 
                 if self_and_ancestors.last() != other_and_ancestors.last() {
-                    let random = as_uintptr(self_and_ancestors.last().unwrap())
-                        < as_uintptr(other_and_ancestors.last().unwrap());
+                    let random = as_uintptr(self_and_ancestors.last().unwrap()) <
+                        as_uintptr(other_and_ancestors.last().unwrap());
                     let random = if random {
                         NodeConstants::DOCUMENT_POSITION_FOLLOWING
                     } else {
@@ -3765,9 +3764,9 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
                     };
 
                     // Disconnected.
-                    return random
-                        + NodeConstants::DOCUMENT_POSITION_DISCONNECTED
-                        + NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC;
+                    return random +
+                        NodeConstants::DOCUMENT_POSITION_DISCONNECTED +
+                        NodeConstants::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC;
                 }
                 // steps 7-10
                 let mut parent = self_and_ancestors.pop().unwrap();
@@ -3782,8 +3781,8 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
                     let child_2 = other_and_ancestors.pop().unwrap();
 
                     if child_1 != child_2 {
-                        let is_before = parent.children().position(|c| c == child_1).unwrap()
-                            < parent.children().position(|c| c == child_2).unwrap();
+                        let is_before = parent.children().position(|c| c == child_1).unwrap() <
+                            parent.children().position(|c| c == child_2).unwrap();
                         // If I am before, `other` is following, and the other way
                         // around.
                         return if is_before {
@@ -3801,11 +3800,11 @@ impl NodeMethods<crate::DomTypeHolder> for Node {
                 //
                 // If we're the container, return that `other` is contained by us.
                 if self_and_ancestors.len() < other_and_ancestors.len() {
-                    NodeConstants::DOCUMENT_POSITION_FOLLOWING
-                        + NodeConstants::DOCUMENT_POSITION_CONTAINED_BY
+                    NodeConstants::DOCUMENT_POSITION_FOLLOWING +
+                        NodeConstants::DOCUMENT_POSITION_CONTAINED_BY
                 } else {
-                    NodeConstants::DOCUMENT_POSITION_PRECEDING
-                        + NodeConstants::DOCUMENT_POSITION_CONTAINS
+                    NodeConstants::DOCUMENT_POSITION_PRECEDING +
+                        NodeConstants::DOCUMENT_POSITION_CONTAINS
                 }
             },
         }
@@ -4056,8 +4055,8 @@ impl<'a> ChildrenMutation<'a> {
     pub(crate) fn modified_edge_element(&self) -> Option<DomRoot<Node>> {
         match *self {
             // Add/remove at start of container: Return the first following element.
-            ChildrenMutation::Prepend { next, .. }
-            | ChildrenMutation::Replace {
+            ChildrenMutation::Prepend { next, .. } |
+            ChildrenMutation::Replace {
                 prev: None,
                 next: Some(next),
                 ..
@@ -4065,8 +4064,8 @@ impl<'a> ChildrenMutation<'a> {
                 .inclusively_following_siblings()
                 .find(|node| node.is::<Element>()),
             // Add/remove at end of container: Return the last preceding element.
-            ChildrenMutation::Append { prev, .. }
-            | ChildrenMutation::Replace {
+            ChildrenMutation::Append { prev, .. } |
+            ChildrenMutation::Replace {
                 prev: Some(prev),
                 next: None,
                 ..
@@ -4074,8 +4073,8 @@ impl<'a> ChildrenMutation<'a> {
                 .inclusively_preceding_siblings()
                 .find(|node| node.is::<Element>()),
             // Insert or replace in the middle:
-            ChildrenMutation::Insert { prev, next, .. }
-            | ChildrenMutation::Replace {
+            ChildrenMutation::Insert { prev, next, .. } |
+            ChildrenMutation::Replace {
                 prev: Some(prev),
                 next: Some(next),
                 ..

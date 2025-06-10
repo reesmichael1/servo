@@ -275,8 +275,6 @@ impl FetchResponseListener for ImageContext {
                 )))
             }
         };
-
-        dbg!(&self.status);
     }
 
     fn process_response_chunk(&mut self, request_id: RequestId, payload: Vec<u8>) {
@@ -349,7 +347,6 @@ impl HTMLImageElement {
             UsePlaceholder::Yes,
         );
 
-        dbg!(&cache_result);
         match cache_result {
             ImageCacheResult::Available(ImageOrMetadataAvailable::ImageAvailable {
                 image,
@@ -1447,9 +1444,6 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
 
     fn image_data(self) -> (Option<Image>, Option<ImageMetadata>) {
         let current_request = self.current_request();
-        //let image_element = self.unsafe_get();
-        //let alt = image_element.Alt();
-        //dbg!(&alt);
         (current_request.image.clone(), current_request.metadata)
     }
 

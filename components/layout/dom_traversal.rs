@@ -65,8 +65,8 @@ impl<'dom> NodeAndStyleInfo<'dom> {
     // FIXME(stevennovaryo): Now, this would also refer to HTMLInputElement, to handle input
     //                       elements without shadow DOM.
     pub(crate) fn is_single_line_text_input(&self) -> bool {
-        self.node.type_id() == LayoutNodeType::Element(LayoutElementType::HTMLInputElement)
-            || self.node.is_text_control_inner_editor()
+        self.node.type_id() == LayoutNodeType::Element(LayoutElementType::HTMLInputElement) ||
+            self.node.is_text_control_inner_editor()
     }
 
     pub(crate) fn pseudo(
@@ -110,10 +110,10 @@ impl<'dom> From<&NodeAndStyleInfo<'dom>> for BaseFragmentInfo {
         // some WPT tests. This needs more investigation.
         if matches!(
             pseudo,
-            Some(PseudoElement::ServoAnonymousBox)
-                | Some(PseudoElement::ServoAnonymousTable)
-                | Some(PseudoElement::ServoAnonymousTableCell)
-                | Some(PseudoElement::ServoAnonymousTableRow)
+            Some(PseudoElement::ServoAnonymousBox) |
+                Some(PseudoElement::ServoAnonymousTable) |
+                Some(PseudoElement::ServoAnonymousTableCell) |
+                Some(PseudoElement::ServoAnonymousTableRow)
         ) {
             return Self::anonymous();
         }
@@ -227,34 +227,10 @@ fn traverse_children_of<'dom>(
         }
     } else {
         for child in iter_child_nodes(parent_element) {
-            //} else if matches!(
-            //    element.type_id(),
-            //    LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            //) {
-
-            // If we find an image node here, then it has not been replaced, which means it
-            // represents a text node.
-            //let treat_as_text = child.is_text_node()
-            //    || matches!(
-            //        child.type_id(),
-            //        LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            //    );
-
-            //let treat_as_text = matches!(
-            //    child.type_id(),
-            //    LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            //);
-
-            let treat_as_text = child.is_text_node();
-
-            //dbg!(child.type_id());
-
-            if treat_as_text {
-                //if child.is_text_node() {
+            if child.is_text_node() {
                 let info = NodeAndStyleInfo::new(child, child.style(context.shared_context()));
                 handler.handle_text(&info, child.to_threadsafe().node_text_content());
             } else if child.is_element() {
-                println!("entering traverse_element");
                 traverse_element(child, context, handler);
             }
         }
@@ -275,10 +251,6 @@ fn traverse_element<'dom>(
     let replaced = ReplacedContents::for_element(element, context);
     let style = element.style(context.shared_context());
 
-    let tmp = Display::from(style.get_box().display);
-    //dbg!(element.type_id(), &style, style.get_box(), tmp);
-    dbg!(element.type_id(), style.get_box(), tmp);
-
     match Display::from(style.get_box().display) {
         Display::None => element.unset_all_boxes(),
         Display::Contents => {
@@ -293,35 +265,12 @@ fn traverse_element<'dom>(
                     .element_box_slot()
                     .set(LayoutBox::DisplayContents(shared_inline_styles.clone()));
 
-                // If we find an image node here, then it has not been replaced, which means it
-                // represents a text node.
-                //let treat_as_text = child.is_text_node()
-                //    || matches!(
-                //        child.type_id(),
-                //        LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-                //    );
-
-                //let is_image = matches!(
-                //    element.type_id(),
-                //    LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-                //);
-                //
-                //dbg!(&is_image);
-                //
-                //handler.enter_display_contents(shared_inline_styles);
-                //if is_image {
-                //    let info =
-                //        NodeAndStyleInfo::new(element, element.style(context.shared_context()));
-                //    handler.handle_text(&info, element.to_threadsafe().node_text_content());
-                //} else {
+                handler.enter_display_contents(shared_inline_styles);
                 traverse_children_of(element, context, handler);
-                //}
                 handler.leave_display_contents();
             }
         },
         Display::GeneratingBox(display) => {
-            //let not_replaced = replaced.is_none();
-            dbg!(&replaced);
             let contents = if let Some(replaced) = replaced {
                 Contents::Replaced(replaced)
             } else if matches!(
@@ -331,13 +280,6 @@ fn traverse_element<'dom>(
                 )
             ) {
                 NonReplacedContents::OfTextControl.into()
-            //} else if matches!(
-            //    element.type_id(),
-            //    LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            //) {
-            //    // If an image hasn't been replaced, then it represents its alt text
-            //    println!("found the non-replaced image!");
-            //    NonReplacedContents::OfElement.into()
             } else {
                 NonReplacedContents::OfElement.into()
             };
@@ -345,53 +287,7 @@ fn traverse_element<'dom>(
             let box_slot = element.element_box_slot();
             let info = NodeAndStyleInfo::new(element, style);
 
-            // If we find an image node here, then it has not been replaced, which means it
-            // represents a text node.
-            //let treat_as_text = child.is_text_node()
-            //    || matches!(
-            //        child.type_id(),
-            //        LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            //    );
-
-            let is_image = matches!(
-                element.type_id(),
-                LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            );
-
-            //dbg!(&is_image);
-
-            //handler.enter_display_contents(shared_inline_styles);
-            //if is_image {
-            //    let info = NodeAndStyleInfo::new(element, element.style(context.shared_context()));
-            //    handler.handle_text(&info, element.to_threadsafe().node_text_content());
-            //} else {
-            //    traverse_children_of(element, context, handler);
-            //}
-            //handler.leave_display_contents();
-
-            //if not_replaced
-            //    && matches!(
-            //        element.type_id(),
-            //        LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            //    )
-            //{
-            //    handler.handle_text(&info, "Hello world!".into());
-            //    handler.handle_element(&info, display, contents, box_slot);
-            //} else {
             handler.handle_element(&info, display, contents, box_slot);
-            //}
-
-            //let info = if replaced.is_none()
-            //    && matches!(
-            //        element.type_id(),
-            //        LayoutNodeType::Element(LayoutElementType::HTMLImageElement)
-            //    ) {
-            //    NodeAndStyleInfo::new(element, style)
-            //    //NodeAndStyleInfo::new(ServoLayoutNode::new(), style)
-            //} else {
-            //    NodeAndStyleInfo::new(element, style)
-            //};
-            //handler.handle_element(&info, display, contents, box_slot);
         },
     }
 }
@@ -464,8 +360,8 @@ fn traverse_pseudo_element_contents<'dom>(
                 };
                 // `display` is not inherited, so we get the initial value
                 debug_assert!(
-                    Display::from(anonymous_info.style.get_box().display)
-                        == Display::GeneratingBox(display_inline)
+                    Display::from(anonymous_info.style.get_box().display) ==
+                        Display::GeneratingBox(display_inline)
                 );
                 handler.handle_element(
                     anonymous_info,
@@ -580,7 +476,6 @@ fn generate_pseudo_element_content(
                         ));
                     },
                     ContentItem::Image(image) => {
-                        println!("in the ContentItem::Image arm");
                         if let Some(replaced_content) =
                             ReplacedContents::from_image(element, context, image)
                         {
@@ -609,10 +504,10 @@ fn generate_pseudo_element_content(
                             vec.push(PseudoElementContentItem::Text(quote));
                         }
                     },
-                    ContentItem::Counter(_, _)
-                    | ContentItem::Counters(_, _, _)
-                    | ContentItem::NoOpenQuote
-                    | ContentItem::NoCloseQuote => {
+                    ContentItem::Counter(_, _) |
+                    ContentItem::Counters(_, _, _) |
+                    ContentItem::NoOpenQuote |
+                    ContentItem::NoCloseQuote => {
                         // TODO: Add support for counters and quotes.
                     },
                 }

@@ -374,8 +374,8 @@ impl LineItemLayout<'_, '_> {
             .contains(LineLayoutInlineContainerFlags::HAD_INLINE_END_PBM);
 
         let containing_block_writing_mode = self.layout.containing_block.style.writing_mode;
-        if containing_block_writing_mode.is_bidi_ltr()
-            != inline_box.base.style.writing_mode.is_bidi_ltr()
+        if containing_block_writing_mode.is_bidi_ltr() !=
+            inline_box.base.style.writing_mode.is_bidi_ltr()
         {
             std::mem::swap(&mut had_start, &mut had_end)
         }
@@ -518,8 +518,8 @@ impl LineItemLayout<'_, '_> {
                 self.line_metrics.block_size - line_height + half_leading
             },
             _ => {
-                self.line_metrics.baseline_block_offset + inline_box_state.base.baseline_offset
-                    - space_above_baseline
+                self.line_metrics.baseline_block_offset + inline_box_state.base.baseline_offset -
+                    space_above_baseline
             },
         }
     }
@@ -550,9 +550,9 @@ impl LineItemLayout<'_, '_> {
         // fallback fonts that use baseline relative alignment, it might be different.
         let start_corner = LogicalVec2 {
             inline: self.current_state.inline_advance,
-            block: self.current_state.baseline_offset
-                - text_item.font_metrics.ascent
-                - self.current_state.parent_offset.block,
+            block: self.current_state.baseline_offset -
+                text_item.font_metrics.ascent -
+                self.current_state.parent_offset.block,
         };
         let content_rect = LogicalRect {
             start_corner,
@@ -563,9 +563,6 @@ impl LineItemLayout<'_, '_> {
         };
 
         self.current_state.inline_advance += inline_advance;
-        //let glyphs: Vec<std::sync::Arc<GlyphStore>> =
-        //    text_item.text.into_iter().map(|g| g).collect();
-        //
         self.current_state.fragments.push((
             Fragment::Text(ArcRefCell::new(TextFragment {
                 base: text_item.base_fragment_info.into(),
@@ -573,7 +570,6 @@ impl LineItemLayout<'_, '_> {
                 rect: PhysicalRect::zero(),
                 font_metrics: text_item.font_metrics,
                 font_key: text_item.font_key,
-                //glyphs,
                 glyphs: text_item.text,
                 justification_adjustment: self.justification_adjustment,
                 selection_range: text_item.selection_range,
@@ -596,10 +592,10 @@ impl LineItemLayout<'_, '_> {
                 .to_logical(ifc_writing_mode);
 
             let mut atomic_offset = LogicalVec2 {
-                inline: self.current_state.inline_advance
-                    + padding_border_margin_sides.inline_start,
-                block: block_start - self.current_state.parent_offset.block
-                    + padding_border_margin_sides.block_start,
+                inline: self.current_state.inline_advance +
+                    padding_border_margin_sides.inline_start,
+                block: block_start - self.current_state.parent_offset.block +
+                    padding_border_margin_sides.block_start,
             };
 
             if atomic_fragment.style.get_box().position == Position::Relative {

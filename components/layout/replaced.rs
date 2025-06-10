@@ -125,7 +125,6 @@ impl ReplacedContents {
     pub fn for_element(element: ServoLayoutNode<'_>, context: &LayoutContext) -> Option<Self> {
         if let Some(ref data_attribute_string) = element.as_typeless_object_with_data_attribute() {
             if let Some(url) = try_to_parse_image_data_url(data_attribute_string) {
-                println!("getting into the try_to_parse_image_data_url block");
                 return Self::from_image_url(
                     element,
                     context,
@@ -136,11 +135,6 @@ impl ReplacedContents {
 
         let (kind, natural_size_in_dots) = {
             if let Some((image, representation, natural_size_in_dots)) = element.as_image() {
-                //(
-                //    ReplacedContentKind::Image(image),
-                //    Some(natural_size_in_dots),
-                //)
-
                 // https://html.spec.whatwg.org/multipage/rendering.html#images-3
                 match representation {
                     // Treat the element as a non-replaced phrasing element whose content is the text
@@ -335,8 +329,6 @@ impl ReplacedContents {
         );
         let clip = PhysicalRect::new(PhysicalPoint::origin(), size);
 
-        dbg!(&self.kind);
-
         match &self.kind {
             ReplacedContentKind::Image(image) => image
                 .as_ref()
@@ -354,7 +346,6 @@ impl ReplacedContents {
                     },
                 })
                 .map(|image_key| {
-                    println!("in the replacement branch");
                     Fragment::Image(ArcRefCell::new(ImageFragment {
                         base: self.base_fragment_info.into(),
                         style: style.clone(),
@@ -363,19 +354,6 @@ impl ReplacedContents {
                         image_key: Some(image_key),
                     }))
                 })
-                //.or_else(|| {
-                //    None
-                //    //Some(Fragment::Text(ArcRefCell::new(TextFragment {
-                //    //    base: text_item.base_fragment_info.into(),
-                //    //    inline_styles: text_item.inline_styles.clone(),
-                //    //    rect: PhysicalRect::zero(),
-                //    //    font_metrics: text_item.font_metrics,
-                //    //    font_key: text_item.font_key,
-                //    //    glyphs,
-                //    //    justification_adjustment: self.justification_adjustment,
-                //    //    selection_range: text_item.selection_range,
-                //    //})))
-                //})
                 .into_iter()
                 .collect(),
             ReplacedContentKind::Video(video) => {
@@ -410,8 +388,8 @@ impl ReplacedContents {
                 }))]
             },
             ReplacedContentKind::Canvas(canvas_info) => {
-                if self.natural_size.width == Some(Au::zero())
-                    || self.natural_size.height == Some(Au::zero())
+                if self.natural_size.width == Some(Au::zero()) ||
+                    self.natural_size.height == Some(Au::zero())
                 {
                     return vec![];
                 }

@@ -10,7 +10,6 @@ use base::id::{BrowsingContextId, PipelineId};
 use html5ever::{local_name, ns};
 use malloc_size_of_derive::MallocSizeOf;
 use net_traits::image_cache::Image;
-//use script::dom::htmlimageelement::HTMLImageElement;
 use script::layout_dom::ServoLayoutNode;
 use script_layout_interface::wrapper_traits::{
     LayoutDataTrait, LayoutNode, ThreadSafeLayoutElement, ThreadSafeLayoutNode,
@@ -232,7 +231,6 @@ impl<'dom> NodeExt<'dom> for ServoLayoutNode<'dom> {
             })
             .or_else(|| metadata.map(|metadata| (metadata.width, metadata.height)))
             .unwrap_or((0, 0));
-        dbg!(&metadata);
         let (mut width, mut height) = (width as f64, height as f64);
         if let Some(density) = node.image_density().filter(|density| *density != 1.) {
             width /= density;
@@ -278,8 +276,8 @@ impl<'dom> NodeExt<'dom> for ServoLayoutNode<'dom> {
     }
 
     fn as_typeless_object_with_data_attribute(&self) -> Option<String> {
-        if LayoutNode::type_id(self)
-            != ScriptLayoutNodeType::Element(LayoutElementType::HTMLObjectElement)
+        if LayoutNode::type_id(self) !=
+            ScriptLayoutNodeType::Element(LayoutElementType::HTMLObjectElement)
         {
             return None;
         }

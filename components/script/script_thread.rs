@@ -2110,7 +2110,6 @@ impl ScriptThread {
     }
 
     fn handle_msg_from_image_cache(&self, response: ImageCacheResponseMessage) {
-        dbg!(&response);
         match response {
             ImageCacheResponseMessage::NotifyPendingImageLoadStatus(pending_image_response) => {
                 let window = self

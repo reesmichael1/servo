@@ -94,7 +94,6 @@ pub enum ResolveImageError {
     None,
 }
 
-#[derive(Debug)]
 pub(crate) enum LayoutImageCacheResult {
     Pending,
     DataAvailable(ImageOrMetadataAvailable),
@@ -121,11 +120,8 @@ impl LayoutContext<'_> {
             use_placeholder,
         );
 
-        dbg!(&cache_result);
-
         match cache_result {
             ImageCacheResult::Available(img_or_meta) => {
-                println!("ImageCacheResult::Available");
                 LayoutImageCacheResult::DataAvailable(img_or_meta)
             },
             // Image has been requested, is still pending. Return no image for this paint loop.
@@ -152,10 +148,7 @@ impl LayoutContext<'_> {
                 LayoutImageCacheResult::Pending
             },
             // Image failed to load, so just return the same error.
-            ImageCacheResult::LoadError => {
-                println!("got an image load error");
-                LayoutImageCacheResult::LoadError
-            },
+            ImageCacheResult::LoadError => LayoutImageCacheResult::LoadError,
         }
     }
 
@@ -194,8 +187,6 @@ impl LayoutContext<'_> {
         url: ServoUrl,
         use_placeholder: UsePlaceholder,
     ) -> Result<CachedImage, ResolveImageError> {
-        println!("we are here");
-        // debug!("loading the image from cache");
         if let Some(cached_image) = self
             .resolved_images_cache
             .read()
@@ -205,7 +196,6 @@ impl LayoutContext<'_> {
         }
 
         let result = self.get_or_request_image_or_meta(node, url.clone(), use_placeholder);
-        dbg!(&result);
         match result {
             LayoutImageCacheResult::DataAvailable(img_or_meta) => match img_or_meta {
                 ImageOrMetadataAvailable::ImageAvailable { image, .. } => {
