@@ -1473,15 +1473,16 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
     fn get_representation(self) -> ImageRepresentation {
         // What an img element represents depends on the src attribute and the alt attribute.
         let request = self.current_request();
-        let element = self.upcast::<Element>();
 
         let alt_opt = self
             .upcast::<Element>()
             .get_attr_val_for_layout(&ns!(), &local_name!("alt"));
         let alt = alt_opt.unwrap_or("");
 
-        let src_opt = element.get_attr_val_for_layout(&ns!(), &local_name!("src"));
-        let src = src_opt.unwrap_or("");
+        // Use source_url instead of the actual "src" attribute
+        // since source_url works with srcsets.
+        let src_opt = &request.source_url;
+        let src = src_opt.clone().map(|url| url.0).unwrap_or(String::new());
 
         // The alt attribute being set to the empty string is distinct from alt == "".
         let alt_set_to_empty = alt.is_empty() && alt_opt.is_some();
@@ -1498,7 +1499,7 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
                 // Otherwise, the element represents nothing, and may be omitted completely from the rendering.
                 // User agents may provide the user with a notification that an image is present
                 // but has been omitted from the rendering.
-                ImageRepresentation::AltText(alt.into())
+                ImageRepresentation::Nothing
             }
         }
         // If the src attribute is set and the alt attribute is set to a value that isn't empty,
@@ -1533,8 +1534,7 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
                 // or when required to provide contextual information in response to navigation,
                 // provide caption information for the image, derived as follows:
 
-                // TODO this is not correct! Although, why are we getting here when the image is
-                // still loading?
+                // FIXME(mrees): properly deduce the caption
                 ImageRepresentation::Nothing
             }
         }
@@ -1544,7 +1544,7 @@ impl LayoutHTMLImageElementHelpers for LayoutDom<'_, HTMLImageElement> {
             ImageRepresentation::Nothing
         } else {
             // The element represents the text given by the alt attribute.
-            ImageRepresentation::AltText(alt.into())
+            ImageRepresentation::AltText(alt.to_string())
         }
     }
 }

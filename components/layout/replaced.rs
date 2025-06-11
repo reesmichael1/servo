@@ -139,7 +139,10 @@ impl ReplacedContents {
                     ImageRepresentation::AltText(_) => return None,
                     // Treat the element as a replaced element whose natural dimensions are 0.
                     // TODO: add a new ReplacedContentKind variant?
-                    ImageRepresentation::Nothing => (ReplacedContentKind::Image(image), None),
+                    ImageRepresentation::Nothing => (
+                        ReplacedContentKind::Image(image),
+                        Some(Size2D::new(0.0, 0.0)),
+                    ),
                     // Treat the element as a replaced element and render the image
                     // according to the rules for doing so defined in CSS.
                     ImageRepresentation::Image => (
