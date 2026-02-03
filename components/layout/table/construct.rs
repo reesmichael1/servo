@@ -22,6 +22,7 @@ use crate::cell::ArcRefCell;
 use crate::context::LayoutContext;
 use crate::dom::{BoxSlot, LayoutBox, NodeExt};
 use crate::dom_traversal::{Contents, NodeAndStyleInfo, NonReplacedContents, TraversalHandler};
+use crate::flow::inline::SharedInlineStyles;
 use crate::flow::{BlockContainerBuilder, BlockFormattingContext};
 use crate::formatting_contexts::{
     IndependentFormattingContext, IndependentFormattingContextContents,
@@ -56,6 +57,8 @@ pub(crate) enum AnonymousTableContent<'dom> {
         contents: Contents,
         box_slot: BoxSlot<'dom>,
     },
+    EnterDisplayContents(SharedInlineStyles),
+    LeaveDisplayContents,
 }
 
 impl AnonymousTableContent<'_> {
@@ -63,6 +66,7 @@ impl AnonymousTableContent<'_> {
         match self {
             Self::Element { .. } => false,
             Self::Text(_, text) => text.chars().all(char_is_whitespace),
+            Self::EnterDisplayContents(_) | Self::LeaveDisplayContents => true,
         }
     }
 
@@ -111,6 +115,12 @@ impl Table {
                     // This only happens if there was whitespace between our internal table elements.
                     // We only collect that whitespace in case we need to re-emit trailing whitespace
                     // after we've added our anonymous table.
+                },
+                AnonymousTableContent::EnterDisplayContents(styles) => {
+                    table_builder.enter_display_contents(styles)
+                },
+                AnonymousTableContent::LeaveDisplayContents => {
+                    table_builder.leave_display_contents()
                 },
             }
         }
@@ -707,6 +717,10 @@ impl<'style, 'dom> TableBuilderTraversal<'style, 'dom> {
                 AnonymousTableContent::Text(info, text) => {
                     row_builder.handle_text(&info, text);
                 },
+                AnonymousTableContent::EnterDisplayContents(styles) => {
+                    row_builder.enter_display_contents(styles)
+                },
+                AnonymousTableContent::LeaveDisplayContents => row_builder.leave_display_contents(),
             }
         }
 
@@ -919,6 +933,16 @@ impl<'dom> TraversalHandler<'dom> for TableBuilderTraversal<'_, 'dom> {
             },
         }
     }
+
+    fn enter_display_contents(&mut self, styles: SharedInlineStyles) {
+        self.current_anonymous_row_content
+            .push(AnonymousTableContent::EnterDisplayContents(styles));
+    }
+
+    fn leave_display_contents(&mut self) {
+        self.current_anonymous_row_content
+            .push(AnonymousTableContent::LeaveDisplayContents);
+    }
 }
 
 struct TableRowGroupBuilder<'style, 'builder, 'dom, 'a> {
@@ -1118,6 +1142,10 @@ impl<'style, 'builder, 'dom, 'a> TableRowBuilder<'style, 'builder, 'dom, 'a> {
                 AnonymousTableContent::Text(info, text) => {
                     builder.handle_text(&info, text);
                 },
+                AnonymousTableContent::EnterDisplayContents(style) => {
+                    builder.enter_display_contents(style)
+                },
+                AnonymousTableContent::LeaveDisplayContents => builder.leave_display_contents(),
             }
         }
 
@@ -1238,6 +1266,16 @@ impl<'dom> TraversalHandler<'dom> for TableRowBuilder<'_, '_, 'dom, '_> {
                     });
             },
         }
+    }
+
+    fn enter_display_contents(&mut self, styles: SharedInlineStyles) {
+        self.current_anonymous_cell_content
+            .push(AnonymousTableContent::EnterDisplayContents(styles));
+    }
+
+    fn leave_display_contents(&mut self) {
+        self.current_anonymous_cell_content
+            .push(AnonymousTableContent::LeaveDisplayContents);
     }
 }
 
