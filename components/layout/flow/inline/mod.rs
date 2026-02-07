@@ -203,7 +203,37 @@ pub(crate) struct SharedInlineStyles {
 
 impl SharedInlineStyles {
     pub(crate) fn ptr_eq(&self, other: &Self) -> bool {
-        self.style.ptr_eq(&other.style) && self.selected.ptr_eq(&other.selected)
+        if self.style.ptr_eq(&other.style) && self.selected.ptr_eq(&other.selected) {
+            return true;
+        }
+
+        // With `display: contents`, we need to check if the inherited styles match
+        // so that text runs can join across sibling elements missed by Stylo's cache.
+        Self::inherited_styles_are_ptr_eq(&self.style, &other.style) &&
+            Self::inherited_styles_are_ptr_eq(&self.selected, &other.selected)
+    }
+
+    fn inherited_styles_are_ptr_eq(a: &SharedStyle, b: &SharedStyle) -> bool {
+        let a = a.borrow();
+        let b = b.borrow();
+
+        std::ptr::eq(a.get_font() as *const _, b.get_font() as *const _) &&
+            std::ptr::eq(
+                a.get_inherited_text() as *const _,
+                b.get_inherited_text() as *const _,
+            ) &&
+            std::ptr::eq(
+                a.get_inherited_box() as *const _,
+                b.get_inherited_box() as *const _,
+            ) &&
+            std::ptr::eq(
+                a.get_inherited_table() as *const _,
+                b.get_inherited_table() as *const _,
+            ) &&
+            std::ptr::eq(
+                a.get_inherited_ui() as *const _,
+                b.get_inherited_ui() as *const _,
+            )
     }
 
     pub(crate) fn from_info_and_context(info: &NodeAndStyleInfo, context: &LayoutContext) -> Self {
