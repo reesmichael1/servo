@@ -73,6 +73,30 @@ impl AnonymousTableContent<'_> {
     fn contents_are_whitespace_only(contents: &[Self]) -> bool {
         contents.iter().all(|content| content.is_whitespace_only())
     }
+
+    /// Walk through the table contents and ensure that sibling `EnterDisplayContents`
+    /// with the same inherited styles are wrapped in the same `Arc`.
+    /// This is necessary because Stylo's cache misses sibling table cells
+    /// when presentational hints create separate `Arc`s.
+    /// Without this, sibling text runs do not merge, which breaks the rendering.
+    fn flatten_display_contents_styles(contents: &mut [Self]) {
+        let mut prior_styles: Option<SharedInlineStyles> = None;
+
+        for content in contents.iter_mut() {
+            match content {
+                Self::EnterDisplayContents(styles) => {
+                    if let Some(ref prior_styles) = prior_styles {
+                        if SharedInlineStyles::inherited_styles_ptr_eq(&styles, &prior_styles) {
+                            *styles = prior_styles.clone();
+                        }
+                    } else {
+                        prior_styles = Some(styles.clone());
+                    }
+                },
+                _ => {},
+            }
+        }
+    }
 }
 
 impl Table {
@@ -91,7 +115,7 @@ impl Table {
     pub(crate) fn construct_anonymous<'dom>(
         context: &LayoutContext,
         parent_info: &NodeAndStyleInfo<'dom>,
-        contents: Vec<AnonymousTableContent<'dom>>,
+        mut contents: Vec<AnonymousTableContent<'dom>>,
         propagated_data: PropagatedBoxTreeData,
     ) -> (NodeAndStyleInfo<'dom>, IndependentFormattingContext) {
         let table_info = parent_info
@@ -101,6 +125,7 @@ impl Table {
         let mut table_builder =
             TableBuilderTraversal::new(context, &table_info, table_style.clone(), propagated_data);
 
+        AnonymousTableContent::flatten_display_contents_styles(&mut contents);
         for content in contents {
             match content {
                 AnonymousTableContent::Element {
@@ -696,7 +721,8 @@ impl<'style, 'dom> TableBuilderTraversal<'style, 'dom> {
             return;
         }
 
-        let row_content = std::mem::take(&mut self.current_anonymous_row_content);
+        let mut row_content = std::mem::take(&mut self.current_anonymous_row_content);
+        AnonymousTableContent::flatten_display_contents_styles(&mut row_content);
         let anonymous_info = self
             .info
             .with_pseudo_element(self.context, PseudoElement::ServoAnonymousTableRow)
@@ -1120,6 +1146,10 @@ impl<'style, 'builder, 'dom, 'a> TableRowBuilder<'style, 'builder, 'dom, 'a> {
             self.current_anonymous_cell_content.clear();
             return;
         }
+
+        AnonymousTableContent::flatten_display_contents_styles(
+            &mut self.current_anonymous_cell_content,
+        );
 
         let context = self.table_traversal.context;
         let anonymous_info = self
