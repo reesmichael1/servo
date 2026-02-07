@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="assert" content="display:contents applies to elements within anonymous tables">
+<link rel="author" title="Michael Rees" href="mailto:mrees@noeontheend.com">
+<link rel="help" href="https://drafts.csswg.org/css-display-3/#valdef-display-contents">
+<link rel="match" href="display-contents-table-003-ref.html">
+<title>CSS Test: CSS display:contents in anonymous table</title>
+<style>
+div { color: red }
+span { display: contents; color: green }
+</style>
+<div style="display: table"><span>Test passes if all three rows are green</span></div>
+<div style="display: table-row-group"><span>Test passes if all three rows are green</span></div>
+<div style="display: table-row"><span>Test passes if all three rows are green</span></div>
