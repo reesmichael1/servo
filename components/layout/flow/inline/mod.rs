@@ -224,6 +224,14 @@ impl SharedInlineStyles {
                 std::ptr::eq(
                     a.get_inherited_ui() as *const _,
                     b.get_inherited_ui() as *const _,
+                ) &&
+                std::ptr::eq(
+                    a.get_list() as *const _,
+                    b.get_list() as *const _,
+                ) &&
+                std::ptr::eq(
+                    a.get_inherited_svg() as *const _,
+                    b.get_inherited_svg() as *const _,
                 )
         }
 
