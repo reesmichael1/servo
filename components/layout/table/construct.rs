@@ -43,8 +43,8 @@ impl ResolvedSlotAndLocation<'_> {
     fn covers_cell_at(&self, coords: TableSlotCoordinates) -> bool {
         let covered_in_x =
             coords.x >= self.coords.x && coords.x < self.coords.x + self.cell.colspan;
-        let covered_in_y = coords.y >= self.coords.y
-            && (self.cell.rowspan == 0 || coords.y < self.coords.y + self.cell.rowspan);
+        let covered_in_y = coords.y >= self.coords.y &&
+            (self.cell.rowspan == 0 || coords.y < self.coords.y + self.cell.rowspan);
         covered_in_x && covered_in_y
     }
 }
@@ -749,7 +749,9 @@ impl<'style, 'dom> TableBuilderTraversal<'style, 'dom> {
                 AnonymousTableContent::EnterDisplayContents(styles) => {
                     row_builder.enter_display_contents(styles)
                 },
-                AnonymousTableContent::LeaveDisplayContents => row_builder.leave_display_contents(),
+                AnonymousTableContent::LeaveDisplayContents => {
+                    row_builder.leave_display_contents();
+                },
             }
         }
 
@@ -797,9 +799,9 @@ impl<'dom> TraversalHandler<'dom> for TableBuilderTraversal<'_, 'dom> {
     ) {
         match display {
             DisplayGeneratingBox::LayoutInternal(internal) => match internal {
-                DisplayLayoutInternal::TableRowGroup
-                | DisplayLayoutInternal::TableFooterGroup
-                | DisplayLayoutInternal::TableHeaderGroup => {
+                DisplayLayoutInternal::TableRowGroup |
+                DisplayLayoutInternal::TableFooterGroup |
+                DisplayLayoutInternal::TableHeaderGroup => {
                     self.finish_anonymous_row_if_needed();
                     self.builder.incoming_rowspans.clear();
 
@@ -1038,6 +1040,10 @@ impl<'style, 'builder, 'dom, 'a> TableRowGroupBuilder<'style, 'builder, 'dom, 'a
                 AnonymousTableContent::Text(info, text) => {
                     row_builder.handle_text(&info, text);
                 },
+                AnonymousTableContent::EnterDisplayContents(style) => {
+                    row_builder.enter_display_contents(style)
+                },
+                AnonymousTableContent::LeaveDisplayContents => row_builder.leave_display_contents(),
             }
         }
 
@@ -1106,6 +1112,16 @@ impl<'dom> TraversalHandler<'dom> for TableRowGroupBuilder<'_, '_, 'dom, '_> {
                     });
             },
         }
+    }
+
+    fn enter_display_contents(&mut self, styles: SharedInlineStyles) {
+        self.current_anonymous_row_content
+            .push(AnonymousTableContent::EnterDisplayContents(styles));
+    }
+
+    fn leave_display_contents(&mut self) {
+        self.current_anonymous_row_content
+            .push(AnonymousTableContent::LeaveDisplayContents);
     }
 }
 
