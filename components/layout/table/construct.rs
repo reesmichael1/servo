@@ -83,20 +83,17 @@ impl AnonymousTableContent<'_> {
         let mut prior_styles: Option<SharedInlineStyles> = None;
 
         for content in contents.iter_mut() {
-            match content {
-                Self::EnterDisplayContents(styles) => {
-                    if let Some(ref prior_styles) = prior_styles {
-                        // We only need to consider inherited styles here
-                        // because non-inherited styles apply to the box.
-                        // However, `display: contents` elements do not have a box.
-                        if SharedInlineStyles::inherited_styles_ptr_eq(&styles, &prior_styles) {
-                            *styles = prior_styles.clone();
-                        }
-                    } else {
-                        prior_styles = Some(styles.clone());
+            if let Self::EnterDisplayContents(styles) = content {
+                if let Some(ref prior_styles) = prior_styles {
+                    // Compare all inherited styles since non-inherited styles
+                    // only apply to that element's box, which `display: contents`
+                    // elements do not have.
+                    if SharedInlineStyles::inherited_styles_ptr_eq(styles, prior_styles) {
+                        *styles = prior_styles.clone();
                     }
-                },
-                _ => {},
+                } else {
+                    prior_styles = Some(styles.clone());
+                }
             }
         }
     }

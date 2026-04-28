@@ -225,7 +225,11 @@ impl SharedInlineStyles {
                     a.get_inherited_ui() as *const _,
                     b.get_inherited_ui() as *const _,
                 ) &&
-                std::ptr::eq(a.get_list() as *const _, b.get_list() as *const _)
+                std::ptr::eq(a.get_list() as *const _, b.get_list() as *const _) &&
+                std::ptr::eq(
+                    a.get_inherited_text() as *const _,
+                    b.get_inherited_text() as *const _,
+                )
         }
 
         check_shared_style(&a.style.borrow(), &b.style.borrow()) &&
